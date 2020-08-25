@@ -17,7 +17,7 @@ public class NearestNeighbor {
 		//(75 TESTING AND TRAINING EXAMPLES)
 		static String [] trainingClassLabels = new String [75]; //1D string array with 75 rows for storing training class labels
 		static String [] testingClassLabels = new String [75]; //1D string array with 75 rows for storing testing class labels
-		static String [] closestClassLabels = new String [75]; //1D string array with 75 rows for storing closest flower
+		static String [] closestFlower = new String [75]; //1D string array with 75 rows for storing closest flower
 			
 		//VARIABLES INITIALIZED AS DOUBLE
 		static double shortestDistance = 0;
@@ -42,7 +42,7 @@ public class NearestNeighbor {
 				trainingClassLabels[row] = lineParts[4]; 
 				row++; }
 			trainingDataScan.close();
-			return testingValues;
+			return trainingValues;
 		}	
 		//PROMPTING USER TO SUBMIT TESTING FILE NAME
 		static double[][] testingDataScanner() throws FileNotFoundException {
@@ -53,73 +53,70 @@ public class NearestNeighbor {
 			File testing = new File(testingFile);
 			Scanner testingDataScan = new Scanner(testing);
 		int row = 0;
-				while(testingDataScan.hasNext()){
-					String line = testingDataScan.nextLine();
-					String[] lineParts = line.split(",");
-					//i = column
-					for(int i=0; i<4; i++) {
-						trainingValues[row][i] = Double.parseDouble(lineParts[i]);
-					}
-					trainingClassLabels[row] = lineParts[4]; 
-					row++; }
-				testingDataScan.close();
-				return trainingValues;	
+			while (testingDataScan.hasNext()) {
+				String line = testingDataScan.nextLine();
+				String[] lineParts = line.split(",");
+				for (int i = 0; i < 4; i++) {
+					testingValues[row][i] = Double.parseDouble(lineParts[i]);
+				}
+				testingClassLabels[row] = lineParts[4]; 
+				row++;
+			}
+			testingDataScan.close();
+			return testingValues;
 		}
 		//CALCULATING THE SHORTEST DISTANCE
-		static String[] closestFlower() {
+		static String[] closeFlower() {
 			int rowShortest = 0;
 			for(int rowSequence = 0; rowSequence<75; rowSequence++ ) {
 				for(int rowTesting = 0; rowTesting < 75; rowTesting++) {
 					
-					double sepalLengthDifference = testingValues[rowTesting][0] - trainingValues[rowTesting][0];
-					double sepalWidthDifference = testingValues[rowTesting][1] - trainingValues[rowTesting][1];
-					double petalLengthDifference = testingValues[rowTesting][2] - trainingValues[rowTesting][2];
-					double petalWidthDifference = testingValues[rowTesting][3] - trainingValues[rowTesting][3];
+					double sepalLengthDifference = testingValues[rowTesting][0] - trainingValues[rowSequence][0];
+					double sepalWidthDifference = testingValues[rowTesting][1] - trainingValues[rowSequence][1];
+					double petalLengthDifference = testingValues[rowTesting][2] - trainingValues[rowSequence][2];
+					double petalWidthDifference = testingValues[rowTesting][3] - trainingValues[rowSequence][3];
 					
-					double discriminant = Math.pow(sepalLengthDifference,  2) + Math.pow(sepalWidthDifference, 2) +
+					double distance = Math.pow(sepalLengthDifference,  2) + Math.pow(sepalWidthDifference, 2) +
 							Math.pow(petalLengthDifference, 2) + Math.pow(petalWidthDifference, 2);
 					
-					distances[rowSequence] = Math.sqrt(discriminant);
-					//DIFFERENCE BETWEEN SHORTEST DISTANCE WILL BECOME NEW DISTANCE
-					if (rowTesting == 0 || distances[rowSequence] < shortestDistance) {
+					distances[rowSequence] = Math.sqrt(distance);
+	                if (rowTesting == 0 || distances[rowSequence] < shortestDistance) {
 	                    rowShortest = rowTesting;
 	                    shortestDistance = distances[rowSequence];
 	                }
 	            }
-				closestClassLabels[rowSequence] = testingClassLabels[rowShortest];
+	            closestFlower[rowSequence] = testingClassLabels[rowShortest];
 	        }
 
-	        return closestClassLabels;
-	    }
+					return closestFlower;
+			}
 		//CASE FOR DIFFERENT FLOWER TYPES UP UNTIL CORRECT GUESS
-	    static double Prediction() {
+	    static double accuracyPrediction() {
 	        int correctGuess = 0;
 
 	        for(int row = 0; row < 75; row++){
-	            switch(closestClassLabels[row]){
+	            switch(closestFlower[row]){
 
 	                case "Iris-setosa":
-	                    if (closestClassLabels[row].equals(trainingClassLabels[row])){
+	                    if (closestFlower[row].equals(trainingClassLabels[row])){
 	                        correctGuess++;
 	                    }
 	                    break;
 	                case "Iris-versicolor":
-	                    if (closestClassLabels[row].equals(trainingClassLabels[row])) {
+	                    if (closestFlower[row].equals(trainingClassLabels[row])) {
 	                        correctGuess++;
 	                    }
 	                    break;
 	                case "Iris-virginica":
-	                    if (closestClassLabels[row].equals(trainingClassLabels[row])) {
+	                    if (closestFlower[row].equals(trainingClassLabels[row])) {
 	                        correctGuess++;
 	                    }
 	                    break;
 	            }
 	        }
-	        accuracy = 	(double)correctGuess/75.0;	
+	        accuracy = (double)correctGuess / 75;
 	        return accuracy;
-	    }
-
-
+	        }
 	    static void printResults() {
 	    	System.out.println();
 	        System.out.println("EX#: TRUE LABEL, PREDICTED LABEL");
@@ -128,9 +125,12 @@ public class NearestNeighbor {
 	            System.out.print(row + 1 + ": ");
 
 	            System.out.print(trainingClassLabels[row] + " ");
-	            System.out.print(closestClassLabels[row]);
+	            System.out.print(closestFlower[row]);
 	            System.out.println(); //line break
 	        }
+	        accuracyPrediction();
+	        System.out.println("ACCURACY: " + accuracy);
+	        System.out.println("");  
 	    }
 	public static void main(String[] args) throws FileNotFoundException {
 	//ASSIGNMENT HEADER INFORMATION IS DISPLAYED
@@ -142,11 +142,8 @@ public class NearestNeighbor {
 	
 	trainingDataScanner();
 	testingDataScanner();
-	closestFlower();
-	printResults();
-	System.out.println("ACCURACY: " + accuracy);
-	
-	
+	closeFlower();
+	printResults();	
 	}
 }
 	
